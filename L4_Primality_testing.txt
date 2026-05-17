@@ -1,0 +1,197 @@
+Topic 1:
+Primality Testing 
+
+1. What is a Prime Number, Actually?
+
+	A number p > 1 is prime if:
+
+	It has no divisors other than 1 & itself
+	Every non-prime must have a divisor ≤ √n.
+
+	Example:
+	30 = 2 × 3 × 5
+	If a number isn’t prime → it must break into small primes.
+
+	This fundamental truth is the backbone of all prime algorithms.
+
+2.Basic Primality Check (Brute → Optimized)
+
+	 💠Naive Approach:
+	Check divisibility from  2  to n-1  too slow.
+
+	💠Optimized Approach:
+	If n has a divisor, at least one must be ≤ √n.
+
+	bool isPrime(int n){
+    		if(n <= 1) return false;
+    		for(int i=2; i*i <= n; i++){
+        			if(n % i == 0) return false;
+   		 }
+   	 	return true;
+	}
+
+
+	Time Complexity: O(√n)
+	Good for single checks, small values.
+
+	Why we need better methods?
+
+	In CP, you may need:
+
+	💠 Check primality for many numbers
+	💠 List all primes up to 10^7
+	💠 Factor numbers fast
+	💠 Work in big ranges like [10^10 , 10^10 + 10^6]
+
+Here brute/sqrt is too slow.
+
+So we move to SIEVES.
+
+3.Sieve of Eratosthenes — Core Idea
+
+	If p is prime, then all multiples of p are composite.
+	so if p is prime p*(p+i) is composite i belongs to integers.
+	
+	Thats what we do we mark the initial primes and construct composite numbers using them.
+
+	Algorithm  Idea:
+	1.Assume all numbers are prime initially
+	2.Start from 2
+	3.If current number is prime → mark its multiples as composite
+	4.Next unmarked number = prime
+	5.Continue till √N
+
+	You remove composite numbers like crossing off names on a list.
+
+	WHY START MARKING FROM p²?
+	Because smaller multiples were already marked by smaller primes:
+	
+	Ex.For p=5 → mark 25,30,35...
+		Not 10,15,20 (handled earlier by 2,3)
+
+	Code:
+	vector<bool> sieve(int n){
+  		vector<bool> prime(n+1,true);
+  		prime[0] = prime[1] = false;
+
+    		for(int p=2; p*p<=n; p++){
+    	  	 	if(prime[p]){
+        	    		for(int i=p*p; i<=n; i+=p)
+            	 	   	prime[i] = false;
+       	 	   	}
+ 		 }
+		return prime;
+	}
+	
+	💠How to Calculate Sieve Time Complexity?
+	Sieve logic:
+	for(p = 2; p*p <= N; p++)
+    		if(prime[p] == true)
+     			for(i = p*p; i <= N; i += p)
+           			prime[i] = false;
+
+	We mark multiples of every prime.
+	Key Observation:
+	2 marks N/2 numbers
+	3 marks N/3 numbers
+	5 marks N/5 numbers
+	7 marks N/7 numbers
+	...
+	p marks N/p numbers
+
+	We only consider primes for marking, because if p is composite, its multiples were already marked by smaller primes.
+	💠So total operations ≈N/2 + N/3 + N/5 + N/7 + ... (over primes)
+	This sum is the core of time complexity.
+	
+	Important known result from number theory:
+	Sum of reciprocals of primes <= log(log N) + constant
+	(1/2 + 1/3 + 1/5 + 1/7 + ... ) = log log N
+	N * (1/2 + 1/3 + 1/5 + ...) ≈ N * log(log N)
+	
+	That’s why the complexity is:
+	 💠O(N log log N)
+	Much faster than O(N √N) or O(N log N).
+
+	💠A great working case:
+	Fast factoriztion of numbers.
+	But can't do it directly have to tweak the idea a bit!
+	
+	Store smallest prime dividing each number.
+	
+	Sieve code with some tweaks:
+	vector<int> spf_sieve(int n){
+    		vector<int> spf(n+1);
+    		for(int i=1;i<=n;i++) spf[i]=i;
+    		for(int i=2;i*i<=n;i++){
+      			  if(spf[i]==i){            // prime
+        			    for(int j=i*i;j<=n;j+=i)
+        			        if(spf[j]==j)     // assign only once
+         		           spf[j]=i;
+      		  }
+   		 }
+  	  return spf;
+	}
+
+	💠Idea :instead of storing whether a number is prime or not we store the
+		smallest prime dividing each number in our array .
+	
+	So that while factorization you divide by the smallest prime and apply the same process
+	for new number getting the next smallest prime hence getting the prime factorization for the whole number.
+
+	Same idea of Sieve can be used to solve many problems with some tweaks.Be ready to tackle them!!
+
+	H.W  Question is a bit on a harder side but good for learning !! 
+		(Challenge Yourself ,No problem if you couldn't think of it the first time)
+	Que.Print all prime numbers in range [L, R]
+	1 ≤ L ≤ R ≤ 10^12
+	R − L ≤ 10^6   (range is small)
+	
+	example input:
+	L = 10
+	R = 40
+	
+	Output:
+	11 13 17 19 23 29 31 37
+
+	This is the idea of segmented seive : Normal seive=impossible for this problem,very high memory usage
+
+	
+4.Fermat Primality Test
+
+	Concept:
+	From Fermat’s Little Theorem (FLT):
+	If p is prime:
+	
+	a^(p-1) ≡ 1(mod p)  
+
+	What is a?
+	a is any integer
+	that is not divisible by p
+	i.e. gcd(a, p) = 1
+	
+	If p is prime, then for any a <p with gcd(a,p)=1
+	If we find an a such that a^(n-1) % n != 1 → n is composite for sure
+	
+	Example:Test if n=15 is prime using a=2:
+		2^(14) mod15=4 !=1 ----->15 is composite
+	
+	its a very simple test derived from mathematics many such tests like miller rabin and aks are there 
+	if someone is more interested in this they can explore these tests .
+
+	Also this test fails for some numbers called the carmichael numbers.
+	561 = 3 × 11 × 17
+	1105 = 5 × 13 × 17
+	1729 = 7 × 13 × 19  ← (Ramanujan–Hardy taxi number also)
+	2465 = 5 × 17 × 29
+	2821 = 7 × 13 × 31
+	6601 = 7 × 23 × 41
+	8911 = 7 × 19 × 67
+
+	So this test is not a fully proven test but is good for opening up the domain of better tests 
+	which do the jobs faster.
+
+H.W Check why seive of eratosthenes is important for primality testing and
+	many a times better than noraml primality testing check those conditions.
+
+
+	
